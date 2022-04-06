@@ -1,51 +1,34 @@
 // SPDX-License-Identifier: UNLICENSED.
 pragma solidity ^0.8.0;
 
-contract VolcanoCoin {
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract VolcanoCoin is Ownable, ERC20 {
 
     struct Payment {
         uint transferAmount;
         address recipient;
     }
 
-    uint totalSupply = 10000;
-    address owner;
+    mapping(address => Payment[]) payments ;
 
-    event TotalSupplyIncrease(uint);
-    event TransferToken(uint, address);
-
-    mapping(address => uint) public balances;
-    mapping(address => Payment[]) payments;
-
-    constructor () {
-        owner = msg.sender;
-        balances[owner] = totalSupply;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not the owner");
-        _;
-    }
-
-    function getTotalSupply() public view returns (uint){
-        return totalSupply;
+    constructor() ERC20("VolcanoCoin","VC") {
+       _mint(msg.sender, 10000);
     }
 
     function increaseTotalSupply() public onlyOwner {
-        totalSupply += 1000;
-        balances[owner] = totalSupply;
-        emit TotalSupplyIncrease(totalSupply);
+       _mint(msg.sender, 1000);
     }
 
-    function transfer(uint amountTransfer, address recipient) public {
-        require(balances[msg.sender] >= amountTransfer, "Not enough tokens");
-        if(msg.sender == owner) {
-            totalSupply-=amountTransfer;
-        }
-        balances[msg.sender] -= amountTransfer;
-        balances[recipient] += amountTransfer;
-        payments[msg.sender].push(Payment(amountTransfer, recipient));
-        emit TransferToken(amountTransfer, recipient);
+    function _afterTokenTransfer(  
+        address from,
+        address to,
+        uint256 amount) internal override {
+        payments[from].push(Payment(amount, to));
+    }
 
+     function getPayments(address from) public view returns(Payment[] memory) {
+      return payments[from];
     }
 }
