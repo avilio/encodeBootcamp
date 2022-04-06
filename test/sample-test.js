@@ -46,6 +46,7 @@ describe("VolcanoCoin", function () {
 
       //await volcanoCoin.deployed();
       await volcanoCoin.transfer(2000, addr2.address);
+      expect(await volcanoCoin.balances(addr2.address)).to.equal(2000);
       expect(await volcanoCoin.balances(owner.address)).to.equal(9000);
       expect(await volcanoCoin.getTotalSupply()).to.equal(9000);
     });
