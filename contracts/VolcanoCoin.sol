@@ -23,7 +23,7 @@ contract VolcanoCoin {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Not the owner");
         _;
     }
 
@@ -33,11 +33,15 @@ contract VolcanoCoin {
 
     function increaseTotalSupply() public onlyOwner {
         totalSupply += 1000;
+        balances[owner] = totalSupply;
         emit TotalSupplyIncrease(totalSupply);
     }
 
     function transfer(uint amountTransfer, address recipient) public {
-        assert(balances[msg.sender] >= amountTransfer);
+        require(balances[msg.sender] >= amountTransfer, "Not enough tokens");
+        if(msg.sender == owner) {
+            totalSupply-=amountTransfer;
+        }
         balances[msg.sender] -= amountTransfer;
         balances[recipient] += amountTransfer;
         payments[msg.sender].push(Payment(amountTransfer, recipient));
